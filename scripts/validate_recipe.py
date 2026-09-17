@@ -28,6 +28,7 @@ def main() -> None:
     data = yaml.safe_load(RECIPE.read_text())
     defaults = data.get("defaults", {})
     command = data.get("command", "")
+    post_commands = data.get("post_commands", [])
 
     require(data.get("recipe_version") == "2", "unexpected recipe version")
     require(data.get("runtime") == "sglang", "runtime must be sglang")
@@ -48,6 +49,14 @@ def main() -> None:
     require(defaults.get("chunked_prefill_size") == 8192, "OpenZeka prefill shape drift")
     require(defaults.get("context_length") == 262144, "context must remain native 262K")
     require(defaults.get("speculative_num_draft_tokens") == 4, "native MTP draft drift")
+    require("--enable-metrics" in command, "SGLang metrics are disabled")
+    require("--enable-cache-report" in command, "cache metrics are disabled")
+    require(defaults.get("port") == 30000, "engine endpoint drift")
+    require(
+        post_commands
+        == ["bash ./scripts/post-launch-dashboard-check.sh {head_ip} {port} 3000"],
+        "post-launch dashboard integration proof is missing",
+    )
 
     print(
         "RECIPE_VALID "

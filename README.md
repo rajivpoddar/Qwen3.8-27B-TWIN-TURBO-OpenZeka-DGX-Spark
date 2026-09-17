@@ -68,6 +68,29 @@ sparkrun run ./openzeka-twin-turbo.yaml --rootful --no-follow --no-rm
 The recipe listens on port `30000` and exposes the model alias
 `qwen3.8-27b`.
 
+## Spark Dashboard integration
+
+Spark Dashboard is endpoint-bound, not model-bound. The installed dashboard on
+the Spark remains bound to the stable SGLang endpoint on port `30000`, so a
+model swap does not require a dashboard restart or state migration.
+
+This recipe now makes that contract executable: after SparkRun's engine health
+gate, its `post_commands` require an SGLang-formatted `/metrics` response from
+the model endpoint and an `ok` response from Spark Dashboard `/healthz` on port
+`3000`. A launch fails visibly if either side is unavailable.
+
+To audit the full live binding on the DGX without printing its API key, run:
+
+```bash
+./scripts/check-dashboard.sh
+```
+
+The expected terminal receipt is:
+
+```text
+dashboard=ready engine=sglang endpoint=http://192.168.68.113:30000 metrics=sglang
+```
+
 ## Required qualification before slot use
 
 1. Confirm the checkpoint loads under the pinned SGLang image with no missing

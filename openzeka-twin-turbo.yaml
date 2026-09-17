@@ -61,3 +61,9 @@ command: |
     --stream-interval 1 \
     --host {host} \
     --port {port}
+
+# Spark Dashboard is endpoint-bound rather than model-bound. These control-host
+# checks prove that this engine exposes SGLang metrics and that the existing
+# dashboard is healthy after SparkRun has completed its own engine health gate.
+post_commands:
+  - "bash ./scripts/post-launch-dashboard-check.sh {head_ip} {port} 3000"

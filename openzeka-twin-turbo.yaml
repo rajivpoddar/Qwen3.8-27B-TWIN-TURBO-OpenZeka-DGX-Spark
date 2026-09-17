@@ -1,0 +1,63 @@
+recipe_version: "2"
+
+# OpenZeka's concurrent DGX Spark profile, adapted for the TWIN-TURBO Fable
+# fine-tune. The target's native MTP head replaces the base-Qwen DFlash2
+# drafter because the external drafter is not calibrated for these logits.
+model: esatapedico/Qwen3.8-27B-TWIN-TURBO-Fable-Cold-Fusion-709-L-Uncensored-NVFP4
+model_revision: 7034c5a0c436e4e96fe409812374737030d1687c
+runtime: sglang
+container: registry.cordata.ai/spark-cluster/sglang-qwen38-27b-dflash2@sha256:2686b3308e8e180060ff22eff2e5c77941a1513bd04c8adf7d6a2898cca18151
+max_nodes: 1
+
+metadata:
+  model_dtype: nvfp4
+  kv_dtype: fp8_e4m3
+  source_recipe: https://blog.openzeka.com/en/qwen3-8-27b-on-dgx-spark-48-tok-s/
+  description: TWIN-TURBO Fable 709-L NVFP4 with native MTP on one DGX Spark
+
+defaults:
+  port: 30000
+  host: 0.0.0.0
+  tensor_parallel: 1
+  gpu_memory_utilization: 0.50
+  served_model_name: qwen3.8-27b
+  attention_backend: flashinfer
+  chunked_prefill_size: 8192
+  context_length: 262144
+  max_running_requests: 12
+  max_mamba_cache_size: 64
+  speculative_num_steps: 3
+  speculative_eagle_topk: 1
+  speculative_num_draft_tokens: 4
+  kv_cache_dtype: fp8_e4m3
+
+command: |
+  python3 -m sglang.launch_server \
+    --trust-remote-code \
+    --model-path {model} \
+    --revision {model_revision} \
+    --tp-size {tensor_parallel} \
+    --served-model-name {served_model_name} \
+    --mem-fraction-static {gpu_memory_utilization} \
+    --attention-backend {attention_backend} \
+    --chunked-prefill-size {chunked_prefill_size} \
+    --disable-prefill-cuda-graph \
+    --kv-cache-dtype {kv_cache_dtype} \
+    --mamba-ssm-dtype bfloat16 \
+    --mamba-full-memory-ratio 4.21 \
+    --mamba-radix-cache-strategy extra_buffer \
+    --max-mamba-cache-size {max_mamba_cache_size} \
+    --max-running-requests {max_running_requests} \
+    --context-length {context_length} \
+    --speculative-algorithm EAGLE \
+    --speculative-num-steps {speculative_num_steps} \
+    --speculative-eagle-topk {speculative_eagle_topk} \
+    --speculative-num-draft-tokens {speculative_num_draft_tokens} \
+    --reasoning-parser qwen3 \
+    --tool-call-parser qwen3_coder \
+    --sampling-defaults model \
+    --enable-metrics \
+    --enable-cache-report \
+    --stream-interval 1 \
+    --host {host} \
+    --port {port}

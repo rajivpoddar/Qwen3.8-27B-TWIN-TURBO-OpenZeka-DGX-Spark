@@ -57,6 +57,9 @@ def main() -> None:
         == ["bash ./scripts/post-launch-dashboard-check.sh {head_ip} {port} 3000"],
         "post-launch dashboard integration proof is missing",
     )
+    executor = data.get("executor_config", {})
+    require(executor.get("restart_policy") == "unless-stopped", "restart policy must survive reboot")
+    require('--api-key "$SGLANG_API_KEY"' in command, "authenticated SGLang serving is missing")
 
     print(
         "RECIPE_VALID "

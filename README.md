@@ -59,6 +59,13 @@ without replacing a live service according to your local sparkrun workflow.
 SparkRun consumes the top-level `model_revision` pin during download, cache
 validation, VRAM detection and synchronization; the same pin is passed to
 SGLang at launch.
+
+The recipe requires `SGLANG_API_KEY` in the resolved SparkRun environment. Put
+the secret in a mode-`0600` cluster `env_file` and map it into the saved
+cluster's `env`; do not add the key to this recipe or pass it on the command
+line. The server refuses unauthenticated API requests and the key therefore
+also needs to match the clients and dashboard bound to port `30000`.
+
 During the approved cutover window:
 
 ```bash

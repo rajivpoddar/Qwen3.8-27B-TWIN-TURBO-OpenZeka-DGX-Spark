@@ -31,6 +31,9 @@ defaults:
   speculative_num_draft_tokens: 4
   kv_cache_dtype: fp8_e4m3
 
+executor_config:
+  restart_policy: unless-stopped
+
 command: |
   python3 -m sglang.launch_server \
     --trust-remote-code \
@@ -56,6 +59,7 @@ command: |
     --reasoning-parser qwen3 \
     --tool-call-parser qwen3_coder \
     --sampling-defaults model \
+    --api-key "$SGLANG_API_KEY" \
     --enable-metrics \
     --enable-cache-report \
     --stream-interval 1 \
